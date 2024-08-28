@@ -37,10 +37,12 @@ nav {
   }
   
   h1 {
+    background-color: #f4f4f4;
     margin-bottom: 20px;
   }
   
   div {
+    background-color: #f4f4f4;
     margin-bottom: 10px;
   }
   
@@ -70,6 +72,7 @@ nav {
   
   /* Basic CSS for the report section */
   h2 {
+    background-color: #f4f4f4;
     margin-top: 30px;
   }
   
@@ -89,5 +92,37 @@ nav {
   #result img{
     width: 200px;
     height: 100px;
+      align-items: center;
+  justify-content: space-around;
   }
-  
+
+  body {
+       background-image: url('https://images.unsplash.com/photo-1553697388-94e804e2f0f6?q=80&w=2565&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D');
+        background-position: center center;
+        background-repeat: no-repeat;
+        background-size: cover;
+        background-attachment: fixed;
+        font-family: Arial, sans-serif;
+        line-height: 1.6;
+        color: #333;
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+    h1 {
+        color: #2c3e50;
+        text-align: center;
+    }
+    p {
+        background-color: #f4f4f4;
+        color: #2c3e50;
+        text-align: center;
+    }
+
+     .center {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+  width: 50%;
+}
+    

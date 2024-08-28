@@ -1,76 +1,125 @@
-async function fetchTravelRecommendations(keyword) {
-    const keyword = document.getElementById('conditionInput').value.toLowerCase();
-    try {
-        const response = await fetch('travel_recommendation_api.json');
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+// Function to normalize and check if a string includes a keyword
+const includesKeyword = (str, keyword) => {
+  return str.toLowerCase().includes(keyword.toLowerCase());
+};
+
+// Function to search travel data
+function searchTravelData(searchTerm) {
+  return fetch('travel_recommendation_api.json')
+    .then(response => response.json())
+    .then(data => {
+      const results = [];
+      const countryKeywords = ['country', 'countries'];
+
+      // Check if search is for country or country name
+      const isCountrySearch = countryKeywords.some(keyword => includesKeyword(searchTerm, keyword)) ||
+                              data.countries.some(country => includesKeyword(country.name, searchTerm));
+
+      if (isCountrySearch) {
+        // If country search, only return cities
+        data.countries.forEach(country => {
+          if (includesKeyword(country.name, searchTerm) || countryKeywords.some(keyword => includesKeyword(searchTerm, keyword))) {
+            country.cities.forEach(city => {
+              results.push({ type: 'city', country: country.name, ...city });
+            });
+          }
+        });
+      } else {
+        // If not country search, search all categories
+        const beachKeywords = ['beach', 'beaches'];
+        const templeKeywords = ['temple', 'temples'];
+
+        // Search cities
+        data.countries.forEach(country => {
+          country.cities.forEach(city => {
+            if (includesKeyword(city.name, searchTerm) || includesKeyword(city.description, searchTerm)) {
+              results.push({ type: 'city', country: country.name, ...city });
+            }
+          });
+        });
+
+        // Search temples
+        if (templeKeywords.some(keyword => includesKeyword(searchTerm, keyword))) {
+          results.push(...data.temples.map(temple => ({ type: 'temple', ...temple })));
+        } else {
+          data.temples.forEach(temple => {
+            if (includesKeyword(temple.name, searchTerm) || includesKeyword(temple.description, searchTerm)) {
+              results.push({ type: 'temple', ...temple });
+            }
+          });
         }
-        const data = await response.json();
-        
-        let recommendations = [];
-        
-        switch(keyword.toLowerCase()) {
-            case 'beach':
-                recommendations = data.beaches.slice(0, 2);
-                break;
-            case 'temple':
-                recommendations = data.temples.slice(0, 2);
-                break;
-            case 'country':
-                recommendations = data.countries.slice(0, 2).map(country => ({
-                    id: country.id,
-                    name: country.name,
-                    imageUrl: country.cities[0].imageUrl,
-                    description: `${country.name} features cities like ${country.cities.map(city => city.name).join(' and ')}.`
-                }));
-                break;
-            default:
-                throw new Error('Invalid keyword. Please use "beach", "temple", or "country".');
+
+        // Search beaches
+        if (beachKeywords.some(keyword => includesKeyword(searchTerm, keyword))) {
+          results.push(...data.beaches.map(beach => ({ type: 'beach', ...beach })));
+        } else {
+          data.beaches.forEach(beach => {
+            if (includesKeyword(beach.name, searchTerm) || includesKeyword(beach.description, searchTerm)) {
+              results.push({ type: 'beach', ...beach });
+            }
+          });
         }
-        
-        return recommendations.map(item => ({
-            name: item.name,
-            imageUrl: item.imageUrl,
-            description: item.description
-        }));
-    } catch (error) {
-        console.error('Error fetching travel recommendations:', error);
-        return [];
-    }
-}
+      }
 
-function displayRecommendations(recommendations) {
-    const container = document.getElementById('recommendationsContainer');
-    container.innerHTML = ''; // Clear previous results
-
-    if (recommendations.length === 0) {
-        container.innerHTML = '<p>No recommendations found. Please try a different keyword.</p>';
-        return;
-    }
-
-    recommendations.forEach(item => {
-        const recommendationDiv = document.createElement('div');
-        recommendationDiv.className = 'recommendation';
-        recommendationDiv.innerHTML = `
-            <h2>${item.name}</h2>
-            <img src="${item.imageUrl}" alt="${item.name}">
-            <p>${item.description}</p>
-        `;
-        container.appendChild(recommendationDiv);
+      return results;
     });
 }
 
-document.getElementById('btnSearch').addEventListener('click', async () => {
-    const keyword = document.getElementById('conditionInput').value.trim();
-    if (keyword) {
-        const recommendations = await fetchTravelRecommendations(keyword);
-        displayRecommendations(recommendations);
-    } else {
-        alert('Please enter a keyword (beach, temple, or country)');
-    }
+// Function to display results
+function displayResults(results) {
+  resultsContainer.innerHTML = ''; // Clear previous results
+  if (results.length === 0) {
+    showPopup("No results found. Try searching for 'country', 'beach', or 'temple'.");
+    return;
+  }
+  results.forEach(item => {
+    const resultElement = document.createElement('div');
+    resultElement.innerHTML = `
+      <h3>${item.name}</h3>
+      <p>Type: ${item.type}</p>
+      ${item.country ? `<p>Country: ${item.country}</p>` : ''}
+      <img src="${item.imageUrl}" alt="${item.name}" style="width: 200px;" class="center">
+      <p>${item.description}</p>
+    `;
+    resultsContainer.appendChild(resultElement);
+  });
+}
+
+// Function to show popup
+function showPopup(message) {
+  const popup = document.createElement('div');
+  popup.style.cssText = `
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: white;
+    padding: 20px;
+    border: 1px solid black;
+    box-shadow: 0 0 10px rgba(0,0,0,0.5);
+    z-index: 1000;
+  `;
+  popup.textContent = message;
+  document.body.appendChild(popup);
+  setTimeout(() => {
+    document.body.removeChild(popup);
+  }, 3000);
+}
+
+// Example usage
+const searchField = document.getElementById('search-field');
+const searchButton = document.getElementById('search-button');
+const clearButton = document.getElementById('clear-button');
+const resultsContainer = document.getElementById('results-container');
+
+searchButton.addEventListener('click', () => {
+  const searchTerm = searchField.value;
+  searchTravelData(searchTerm)
+    .then(displayResults)
+    .catch(error => console.error('Error:', error));
 });
 
-document.getElementById('btnClear').addEventListener('click', () => {
-    document.getElementById('conditionInput').value = '';
-    document.getElementById('recommendationsContainer').innerHTML = '';
+clearButton.addEventListener('click', () => {
+  searchField.value = '';
+  resultsContainer.innerHTML = '';
 });

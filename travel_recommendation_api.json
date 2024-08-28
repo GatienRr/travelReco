@@ -72,8 +72,8 @@
       },
       {
         "id": 2,
-        "name": "https://cdn.pixabay.com/photo/2019/03/13/09/14/africa-4052504_640.jpg",
-        "imageUrl": "enter_your_image_for_copacabana.jpg",
+        "name": "Copacabana Beach, Brazil",
+        "imageUrl": "https://cdn.pixabay.com/photo/2019/03/13/09/14/africa-4052504_640.jpg",
         "description": "A famous beach in Rio de Janeiro, Brazil, with a vibrant atmosphere and scenic views."
       }
     ]
